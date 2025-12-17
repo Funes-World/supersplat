@@ -7,6 +7,7 @@ import { registerEditorEvents } from "./editor";
 import { Events } from "./events";
 import { initFileHandler } from "./file-handler";
 import { registerIframeApi } from "./iframe-api";
+import { AutoOrbitController } from "./auto-orbit";
 import { registerPlySequenceEvents } from "./ply-sequence";
 import { registerPublishEvents } from "./publish";
 import { registerRenderEvents } from "./render";
@@ -31,7 +32,7 @@ import { ToolManager } from "./tools/tool-manager";
 import { registerTransformHandlerEvents } from "./transform-handler";
 import { EditorUI } from "./ui/editor";
 import { localizeInit } from "./ui/localization";
-import { loadFromQueryParams } from "./embed-loader";
+import { loadFromQueryParams } from "./funes-embed-loader";
 declare global {
   interface LaunchParams {
     readonly files: FileSystemFileHandle[];
@@ -162,6 +163,9 @@ const main = async () => {
 
   // construct the manager
   const scene = new Scene(events, sceneConfig, editorUI.canvas, graphicsDevice);
+
+  // 自动旋转：默认开启，便于在外部 iframe 中同步控制
+  const autoOrbit = new AutoOrbitController(events, scene, { enabled: true });
 
   // colors
   const bgClr = new Color();

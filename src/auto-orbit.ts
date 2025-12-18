@@ -23,6 +23,7 @@ class AutoOrbitController {
   private onUpdate: (dt: number) => void;
   private onUserInput: () => void;
   private maxSubsteps: number;
+  lastTick: null;
 
   constructor(events: Events, scene: Scene, options: AutoOrbitOptions = {}) {
     this.events = events;
@@ -103,7 +104,7 @@ class AutoOrbitController {
     // Smooth jittery frame times so the orbit looks consistent even when dt spikes a bit.
     const rawDt = Math.max(0, Math.min(deltaTime, this.catchUpLimit));
     this.smoothedDt += (rawDt - this.smoothedDt) * this.dtSmoothing;
-    const dt = Math.min(this.smoothedDt, this.catchUpLimit);
+    const dt = Math.min(this.smoothedDt, this.maxStep);
 
     const azim = camera.azim - this.speedDeg * dt;
     camera.setAzimElev(azim, camera.elevation, 0);

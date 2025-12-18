@@ -14,6 +14,9 @@ class PointerController {
     destroy: () => void;
 
     constructor(camera: Camera, target: HTMLElement) {
+        const signalControl = (type: string) => {
+            camera.scene.events.fire('camera.controller', type);
+        };
 
         const orbit = (dx: number, dy: number) => {
             const azim = camera.azim - dx * camera.scene.config.controls.orbitSensitivity;
@@ -58,6 +61,7 @@ class PointerController {
                 pressedButton = event.button;
                 x = event.offsetX;
                 y = event.offsetY;
+                signalControl('pointerdown');
             } else if (event.pointerType === 'touch') {
                 if (touches.length === 0) {
                     target.setPointerCapture(event.pointerId);
@@ -73,6 +77,7 @@ class PointerController {
                     midy = (touches[0].y + touches[1].y) * 0.5;
                     midlen = dist(touches[0].x, touches[0].y, touches[1].x, touches[1].y);
                 }
+                signalControl('pointerdown');
             }
         };
 
@@ -89,9 +94,11 @@ class PointerController {
                     target.releasePointerCapture(event.pointerId);
                 }
             }
+            signalControl('pointerup');
         };
 
         const pointermove = (event: PointerEvent) => {
+            let handled = false;
             if (event.pointerType === 'mouse') {
                 // Only process if we're tracking a button
                 if (pressedButton === -1) {
@@ -120,10 +127,13 @@ class PointerController {
 
                 if (mod === 'orbit' || (mod === null && pressedButton === 0)) {
                     orbit(dx, dy);
+                    handled = true;
                 } else if (mod === 'zoom' || (mod === null && pressedButton === 1)) {
                     zoom(dy * -0.02);
+                    handled = true;
                 } else if (mod === 'pan' || (mod === null && pressedButton === 2)) {
                     pan(x, y, dx, dy);
+                    handled = true;
                 }
             } else {
                 if (touches.length === 1) {
@@ -133,6 +143,7 @@ class PointerController {
                     touch.x = event.offsetX;
                     touch.y = event.offsetY;
                     orbit(dx, dy);
+                    handled = true;
                 } else if (touches.length === 2) {
                     const touch = touches[touches.map(t => t.id).indexOf(event.pointerId)];
                     touch.x = event.offsetX;
@@ -148,7 +159,12 @@ class PointerController {
                     midx = mx;
                     midy = my;
                     midlen = ml;
+                    handled = true;
                 }
+            }
+
+            if (handled) {
+                signalControl('pointermove');
             }
         };
 
@@ -172,6 +188,7 @@ class PointerController {
                 orbit(deltaX, deltaY);
             }
 
+            signalControl('wheel');
             event.preventDefault();
         };
 
@@ -181,6 +198,7 @@ class PointerController {
         const dblclick = (event: globalThis.MouseEvent) => {
             if (event.target === target || event.target === canvas) {
                 camera.pickFocalPoint(event.offsetX, event.offsetY);
+                signalControl('dblclick');
             }
         };
 
@@ -195,12 +213,14 @@ class PointerController {
         const keydown = (event: KeyboardEvent) => {
             if (keys.hasOwnProperty(event.key) && event.target === document.body) {
                 keys[event.key] = event.shiftKey ? 10 : (event.ctrlKey || event.metaKey || event.altKey ? 0.1 : 1);
+                signalControl('keydown');
             }
         };
 
         const keyup = (event: KeyboardEvent) => {
             if (keys.hasOwnProperty(event.key)) {
                 keys[event.key] = 0;
+                signalControl('keyup');
             }
         };
 
@@ -218,29 +238,23 @@ class PointerController {
             }
         };
 
-        let destroy: () => void = null;
-
-        const wrap = (target: any, name: string, fn: any, options?: any) => {
-            const callback = (event: any) => {
-                camera.scene.events.fire('camera.controller', name);
-                fn(event);
-            };
-            target.addEventListener(name, callback, options);
-            destroy = () => {
-                destroy?.();
-                target.removeEventListener(name, callback);
-            };
+        const listeners: Array<() => void> = [];
+        const addListener = (listenerTarget: any, name: string, fn: any, options?: any) => {
+            listenerTarget.addEventListener(name, fn, options);
+            listeners.push(() => listenerTarget.removeEventListener(name, fn, options));
         };
 
-        wrap(target, 'pointerdown', pointerdown);
-        wrap(target, 'pointerup', pointerup);
-        wrap(target, 'pointermove', pointermove);
-        wrap(target, 'wheel', wheel, { passive: false });
-        wrap(target, 'dblclick', dblclick);
-        wrap(document, 'keydown', keydown);
-        wrap(document, 'keyup', keyup);
+        addListener(target, 'pointerdown', pointerdown);
+        addListener(target, 'pointerup', pointerup);
+        addListener(target, 'pointermove', pointermove);
+        addListener(target, 'wheel', wheel, { passive: false });
+        addListener(target, 'dblclick', dblclick);
+        addListener(document, 'keydown', keydown);
+        addListener(document, 'keyup', keyup);
 
-        this.destroy = destroy;
+        this.destroy = () => {
+            listeners.forEach((dispose) => dispose());
+        };
     }
 }
 

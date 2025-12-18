@@ -1,52 +1,76 @@
-@use 'colors.scss' as *;
+@use "colors.scss" as *;
 
 #spinner-container {
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: $bcg-darken;
-    pointer-events: all;
-    cursor: progress;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: $bcg-darken;
+  pointer-events: all;
+  cursor: progress;
 
-    .spinner::before, .spinner::after {
-        border: 2px solid;
-        border-left: none;
-        box-sizing: border-box;
-        content: '';
-        display: block;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translateY(-50%);
-        transform-origin: 0% 50%;
-        animation: spinner-spin 1s linear 0s infinite;
-        border-width: 3px;
-        border-color: #aaa;
+  .spinner::before,
+  .spinner::after {
+    border: 2px solid;
+    border-left: none;
+    box-sizing: border-box;
+    content: "";
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateY(-50%);
+    transform-origin: 0% 50%;
+    animation: spinner-spin 1s linear 0s infinite;
+    border-width: 3px;
+    border-color: #aaa;
+  }
+
+  .spinner::before {
+    width: 15px;
+    height: 30px;
+    border-radius: 0 30px 30px 0;
+  }
+
+  .spinner::after {
+    width: 8px;
+    height: 16px;
+    border-radius: 0 16px 16px 0;
+    animation-direction: reverse;
+  }
+
+  @keyframes spinner-spin {
+    0% {
+      -webkit-transform: translateY(-50%) rotate(0deg);
+      transform: translateY(-50%) rotate(0deg);
     }
 
-    .spinner::before {
-        width: 15px;
-        height: 30px;
-        border-radius: 0 30px 30px 0;
+    100% {
+      -webkit-transform: translateY(-50%) rotate(360deg);
+      transform: translateY(-50%) rotate(360deg);
     }
+  }
+}
 
-    .spinner::after {
-        width: 8px;
-        height: 16px;
-        border-radius: 0 16px 16px 0;
-        animation-direction: reverse;
-    }
+#funes-spinner-container {
+  position: fixed; // 或 absolute，取决于你挂载的位置
+  inset: 0; // 等价于 left/top/right/bottom = 0
+  pointer-events: all;
+  cursor: progress;
 
-    @keyframes spinner-spin {
-        0% {
-            -webkit-transform: translateY(-50%) rotate(0deg);
-            transform: translateY(-50%) rotate(0deg);
-        }
+  &:not(.pcui-hidden) {
+    display: flex;
+  }
 
-        100% {
-            -webkit-transform: translateY(-50%) rotate(360deg);
-            transform: translateY(-50%) rotate(360deg);
-        }
-    }
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  .funesSpinner {
+    font-size: 13px;
+    color: rgba($color: #ffffff, $alpha: 0.8);
+    background-color: rgba($color: #000000, $alpha: 0.6);
+    padding: 6px 18px;
+    border-radius: 16px;
+  }
 }

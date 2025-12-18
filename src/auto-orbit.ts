@@ -16,7 +16,9 @@ class AutoOrbitController {
   private resumeDelayMs: number;
   private resumeAt: number | null;
   private maxStep: number;
-  private lastTick: number | null;
+  private catchUpLimit: number;
+  private smoothedDt: number;
+  private dtSmoothing: number;
 
   private onUpdate: (dt: number) => void;
   private onUserInput: () => void;
@@ -34,9 +36,11 @@ class AutoOrbitController {
         ? Math.max(0, options.resumeDelayMs)
         : 1000;
     this.resumeAt = null;
-    this.lastTick = null;
     this.maxStep = 1 / 60; // split large frame deltas into ~60fps-sized steps
-    this.maxSubsteps = 60; // don't try to catch up more than ~1s in a single update
+    this.maxSubsteps = 6; // catch up at most ~0.1s to avoid stalls after long pauses
+    this.catchUpLimit = this.maxStep * this.maxSubsteps;
+    this.smoothedDt = this.maxStep;
+    this.dtSmoothing = 0.2; // exponential smoothing for jittery frame times
 
     this.onUpdate = (dt: number) => this.update(dt);
     this.onUserInput = () => this.handleUserInput();
@@ -67,7 +71,7 @@ class AutoOrbitController {
     this.intent = next;
     this.enabled = next;
     this.resumeAt = null;
-    this.lastTick = null;
+    this.smoothedDt = this.maxStep;
     this.events.fire("autoOrbit.state", this.enabled);
     if (this.enabled) {
       // nudge a render once when enabling; subsequent frames will trigger from camera changes
@@ -88,7 +92,7 @@ class AutoOrbitController {
       }
     }
     if (!this.enabled) {
-      this.lastTick = null;
+      this.smoothedDt = this.maxStep;
       return;
     }
     const camera = this.scene?.camera;
@@ -96,28 +100,15 @@ class AutoOrbitController {
       return;
     }
 
-    const nowSec = performance.now() / 1000;
-    if (this.lastTick === null) {
-      // seed clock on first enabled frame to avoid catching up a long pause
-      this.lastTick = nowSec;
-      return;
-    }
+    // Smooth jittery frame times so the orbit looks consistent even when dt spikes a bit.
+    const rawDt = Math.max(0, Math.min(deltaTime, this.catchUpLimit));
+    this.smoothedDt += (rawDt - this.smoothedDt) * this.dtSmoothing;
+    const dt = Math.min(this.smoothedDt, this.catchUpLimit);
 
-    // Keep motion smooth when a frame stalls by subdividing long dt values.
-    // This avoids both visible jumps (large single steps) and visible pauses
-    // (dropping excess time when clamping).
-    const rawDt = Math.max(0, nowSec - this.lastTick);
-    this.lastTick = nowSec;
-    let remaining = Math.min(
-      rawDt,
-      this.maxStep * this.maxSubsteps
-    );
-    while (remaining > 0) {
-      const dt = Math.min(remaining, this.maxStep);
-      const azim = camera.azim - this.speedDeg * dt;
-      camera.setAzimElev(azim, camera.elevation, 0);
-      remaining -= dt;
-    }
+    const azim = camera.azim - this.speedDeg * dt;
+    camera.setAzimElev(azim, camera.elevation, 0);
+    // Always request a frame while auto orbiting to avoid render skips on small motions
+    this.scene.forceRender = true;
   }
 
   dispose() {

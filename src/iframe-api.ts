@@ -99,8 +99,18 @@ const registerIframeApi = (events: Events) => {
 
     events.on("tool.activated", () => postToolState());
     events.on("tool.deactivated", () => postToolState());
-    events.on("startSpinner", () => postLoadingState(true));
-    events.on("stopSpinner", () => postLoadingState(false));
+
+    let pendingSplatReady = false;
+    events.on("scene.elementAdded", (element: any) => {
+        if (element && element.type === "splat") {
+            pendingSplatReady = true;
+        }
+    });
+    events.on("postrender", () => {
+        if (!pendingSplatReady) return;
+        pendingSplatReady = false;
+        postLoadingState(false);
+    });
 
     window.addEventListener("message", (event: MessageEvent) => {
         const source = event.source as Window | null;

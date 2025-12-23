@@ -17,7 +17,6 @@ import { PublishSettingsDialog } from "./publish-settings-dialog";
 import { RightToolbar } from "./right-toolbar";
 import { ScenePanel } from "./scene-panel";
 import { ShortcutsPopup } from "./shortcuts-popup";
-import { Spinner } from "./spinner";
 import { TimelinePanel } from "./timeline-panel";
 import { Tooltips } from "./tooltips";
 import { VideoSettingsDialog } from "./video-settings-dialog";
@@ -517,20 +516,6 @@ class EditorUI {
 
     events.function("showPopup", (options: ShowOptions) => {
       return this.popup.show(options);
-    });
-
-    // spinner
-
-    const spinner = new Spinner();
-
-    topContainer.append(spinner);
-
-    events.on("startSpinner", () => {
-      spinner.hidden = false;
-    });
-
-    events.on("stopSpinner", () => {
-      spinner.hidden = true;
     });
 
     // progress

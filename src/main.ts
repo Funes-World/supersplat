@@ -164,8 +164,11 @@ const main = async () => {
   // construct the manager
   const scene = new Scene(events, sceneConfig, editorUI.canvas, graphicsDevice);
 
-  // 自动旋转：默认开启，便于在外部 iframe 中同步控制
-  const autoOrbit = new AutoOrbitController(events, scene, { enabled: true });
+  // 自动旋转：iframe 内默认关闭，等待外部指令再打开
+  const isEmbedded = typeof window !== "undefined" && window.parent !== window;
+  const autoOrbit = new AutoOrbitController(events, scene, {
+    enabled: !isEmbedded,
+  });
 
   // colors
   const bgClr = new Color();

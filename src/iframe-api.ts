@@ -4,6 +4,7 @@ const IS_SCENE_DIRTY = "supersplat:is-scene-dirty";
 const SET_AUTO_ORBIT = "supersplat:auto-orbit";
 const TOOL_MESSAGE = "supersplat:tool";
 const TOOL_STATE = "supersplat:tool-state";
+const LOADING_STATE = "supersplat:loading";
 
 interface IsSceneDirtyQuery {
     type: typeof IS_SCENE_DIRTY;
@@ -33,6 +34,11 @@ interface ToolMessage {
 interface ToolState {
     type: typeof TOOL_STATE;
     activeTool: string | null;
+}
+
+interface LoadingStateMessage {
+    type: typeof LOADING_STATE;
+    loading: boolean;
 }
 
 const isSceneDirtyQuery = (data: any): data is IsSceneDirtyQuery => {
@@ -77,8 +83,24 @@ const registerIframeApi = (events: Events) => {
         } catch (e) {}
     };
 
+    const postLoadingState = (loading: boolean, target?: Window, origin?: string) => {
+        if (!target && window.parent === window) return;
+        const payload: LoadingStateMessage = {
+            type: LOADING_STATE,
+            loading: !!loading
+        };
+        try {
+            const win = target ?? window.parent;
+            if (win) {
+                win.postMessage(payload, origin ?? "*");
+            }
+        } catch (e) {}
+    };
+
     events.on("tool.activated", () => postToolState());
     events.on("tool.deactivated", () => postToolState());
+    events.on("startSpinner", () => postLoadingState(true));
+    events.on("stopSpinner", () => postLoadingState(false));
 
     window.addEventListener("message", (event: MessageEvent) => {
         const source = event.source as Window | null;

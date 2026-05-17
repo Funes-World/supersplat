@@ -1,6 +1,6 @@
 type Color = { r: number, g: number, b: number, a: number };
 
-const DEFAULT_BG_CLR: Color = { r: 0, g: 0, b: 0, a: 1 };
+const DEFAULT_BG_CLR: Color = { r: 0.73, g: 0.73, b: 0.73, a: 1 };
 const DEFAULT_SELECTED_CLR: Color = { r: 1, g: 1, b: 0, a: 1 };
 const DEFAULT_UNSELECTED_CLR: Color = { r: 0, g: 0, b: 1, a: 0.5 };
 const DEFAULT_LOCKED_CLR: Color = { r: 0, g: 0, b: 0, a: 0.05 };
@@ -31,8 +31,8 @@ const sceneConfig = {
         maxPolarAngle: Math.PI,
         minZoom: 1e-6,
         maxZoom: 10.0,
-        initialAzim: -45,
-        initialElev: -10,
+        initialAzim: 0,
+        initialElev: 0,
         initialZoom: 1.0,
         orbitSensitivity: 0.3,
         zoomSensitivity: 0.4

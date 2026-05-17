@@ -39,7 +39,8 @@ const registerTransformHandlerEvents = (events: Events) => {
     const update = (splat: Splat) => {
         pop();
         if (splat) {
-            if (splat.numSelected > 0) {
+            const hasPartialSelection = splat.numSelected > 0 && splat.numSelected < splat.numSplats;
+            if (hasPartialSelection) {
                 push(splatsTransformHandler);
             } else {
                 push(entityTransformHandler);

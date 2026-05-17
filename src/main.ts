@@ -1,6 +1,7 @@
 import { WebPCodec } from '@playcanvas/splat-transform';
 import { Color, createGraphicsDevice } from 'playcanvas';
 
+import { AutoOrbitController } from './auto-orbit';
 import { registerCameraPosesEvents } from './camera-poses';
 import { CommandQueue } from './command-queue';
 import { registerDocEvents } from './doc';
@@ -8,6 +9,8 @@ import { EditHistory } from './edit-history';
 import { registerEditorEvents } from './editor';
 import { Events } from './events';
 import { initFileHandler } from './file-handler';
+import { applyFunesEmbedConfig, isFunesEmbeddedMode } from './funes-config';
+import { loadFromQueryParams } from './funes-embed-loader';
 import { registerIframeApi } from './iframe-api';
 import { registerPlySequenceEvents } from './ply-sequence';
 import { registerPublishEvents } from './publish';
@@ -74,12 +77,18 @@ const getURLArgs = () => {
     return config;
 };
 
+const isTruthyParam = (value: string | null) => {
+    return value !== null && !['', '0', 'false', 'no', 'off'].includes(value.toLowerCase());
+};
+
 const main = async () => {
     // root events object
     const events = new Events();
 
     // url
     const url = new URL(window.location.href);
+    const funesEmbeddedMode = isFunesEmbeddedMode(url);
+    const funesDiagnosticsEnabled = isTruthyParam(url.searchParams.get('funesDiagnostics'));
 
     // shared command queue for all async splat work (GPU readbacks + history mutations).
     // every consumer that needs ordering relative to other commands enqueues here.
@@ -105,7 +114,6 @@ const main = async () => {
     registerTransformHandlerEvents(events);
     registerPlySequenceEvents(events);
     registerPublishEvents(events);
-    registerIframeApi(events);
 
     // initialize shortcuts
     const shortcutManager = new ShortcutManager(events);
@@ -115,6 +123,7 @@ const main = async () => {
     const editorUI = new EditorUI(events);
 
     // create the graphics device
+    const graphicsInitStart = performance.now();
     const graphicsDevice = await createGraphicsDevice(editorUI.canvas, {
         deviceTypes: ['webgl2'],
         antialias: false,
@@ -122,6 +131,26 @@ const main = async () => {
         stencil: false,
         xrCompatible: false,
         powerPreference: 'high-performance'
+    });
+    const graphicsInitMs = performance.now() - graphicsInitStart;
+
+    events.function('funes.diagnosticsEnabled', () => funesDiagnosticsEnabled);
+    events.function('funes.graphicsState', () => {
+        const device = graphicsDevice as {
+            deviceType?: string;
+            isWebGPU?: boolean;
+        };
+
+        return {
+            requestedBackend: 'webgl2',
+            actualBackend: device.deviceType ?? (device.isWebGPU ? 'webgpu' : 'webgl2'),
+            deviceTypes: ['webgl2'],
+            webGPUAvailable: !!(navigator as Navigator & { gpu?: unknown }).gpu,
+            graphicsInitMs: Math.round(graphicsInitMs * 10) / 10,
+            devicePixelRatio: window.devicePixelRatio,
+            canvasWidth: editorUI.canvas.width,
+            canvasHeight: editorUI.canvas.height
+        };
     });
 
     const overrides = [
@@ -139,6 +168,8 @@ const main = async () => {
         graphicsDevice,
         commandQueue
     );
+    const autoOrbitController = new AutoOrbitController(events, scene, { enabled: !funesEmbeddedMode });
+    events.function('autoOrbit.controller', () => autoOrbitController);
 
     // colors
     const bgClr = new Color();
@@ -251,25 +282,16 @@ const main = async () => {
     registerDocEvents(scene, events);
     registerRenderEvents(scene, events);
     initFileHandler(scene, events, editorUI.appContainer.dom);
+    registerIframeApi(events);
+
+    if (funesEmbeddedMode) {
+        applyFunesEmbedConfig(events);
+    }
 
     // load async models
     scene.start();
 
-    // handle load params
-    const loadList = url.searchParams.getAll('load');
-    const filenameList = url.searchParams.getAll('filename');
-    for (const [i, value] of loadList.entries()) {
-        const decoded = decodeURIComponent(value);
-        const filename = i < filenameList.length ?
-            decodeURIComponent(filenameList[i]) :
-            decoded.split('/').pop();
-
-        await events.invoke('import', [{
-            filename,
-            url: decoded
-        }]);
-    }
-
+    await loadFromQueryParams(url, events);
 
     // handle OS-based file association in PWA mode
     if ('launchQueue' in window) {

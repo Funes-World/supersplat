@@ -10,13 +10,19 @@
         <meta name="description" content="SuperSplat is an advanced browser-based editor for manipulating and optimizing 3D Gaussian Splats. It is open source and engine agnostic." />
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 
-        <!-- Service worker -->
+        <!-- FUNES runs the hosted editor as an iframe/embed target, so stale service worker caches must not survive deploys. -->
         <script>
             const sw = navigator.serviceWorker;
             if (sw) {
-                sw.register('./sw.js')
-                    .then(reg => console.log('service worker registered', reg))
-                    .catch(err => console.log('failed to register service worker', err));
+                sw.getRegistrations()
+                    .then(registrations => registrations.forEach(registration => registration.unregister()))
+                    .catch(err => console.log('failed to unregister service worker', err));
+            }
+
+            if (window.caches) {
+                caches.keys()
+                    .then(keys => keys.forEach(key => caches.delete(key)))
+                    .catch(err => console.log('failed to clear service worker caches', err));
             }
         </script>
     </head>

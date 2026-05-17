@@ -72,6 +72,63 @@ const getURLArgs = () => {
   return config;
 };
 
+type FunesRendererPreference = "webgl2" | "webgpu" | "auto";
+
+const FUNES_RENDERER_PARAM = "funesRenderer";
+const FUNES_DIAGNOSTICS_PARAM = "funesDiagnostics";
+
+const rendererPreferenceFromURL = (url: URL): FunesRendererPreference => {
+  const raw = (url.searchParams.get(FUNES_RENDERER_PARAM) ?? "webgl2")
+    .trim()
+    .toLowerCase();
+  if (raw === "webgpu" || raw === "auto" || raw === "webgl2") {
+    return raw;
+  }
+  return "webgl2";
+};
+
+const diagnosticsEnabledFromURL = (url: URL) => {
+  const raw = (url.searchParams.get(FUNES_DIAGNOSTICS_PARAM) ?? "")
+    .trim()
+    .toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes";
+};
+
+const deviceTypesForRenderer = (preference: FunesRendererPreference) => {
+  switch (preference) {
+    case "webgpu":
+    case "auto":
+      return ["webgpu", "webgl2"];
+    case "webgl2":
+    default:
+      return ["webgl2"];
+  }
+};
+
+const getActualGraphicsBackend = (graphicsDevice: any) => {
+  if (graphicsDevice?.isWebGPU) {
+    return "webgpu";
+  }
+
+  const gl = graphicsDevice?.gl ?? graphicsDevice?._gl;
+  const version = gl?.getParameter?.(gl.VERSION);
+  if (typeof version === "string") {
+    return version.toLowerCase().includes("webgl 2") ? "webgl2" : "webgl1";
+  }
+
+  if (graphicsDevice?.webgl2) {
+    return "webgl2";
+  }
+
+  return "unknown";
+};
+
+const isWebGPUAvailable = () => {
+  return typeof navigator !== "undefined" && "gpu" in navigator && !!(navigator as any).gpu;
+};
+
+const rounded = (value: number) => Math.round(value * 10) / 10;
+
 const initShortcuts = (events: Events) => {
   const shortcuts = new Shortcuts(events);
 
@@ -136,6 +193,8 @@ const main = async () => {
 
   // url
   const url = new URL(window.location.href);
+  const rendererPreference = rendererPreferenceFromURL(url);
+  const diagnosticsEnabled = diagnosticsEnabledFromURL(url);
 
   // edit history
   const editHistory = new EditHistory(events);
@@ -147,14 +206,30 @@ const main = async () => {
   const editorUI = new EditorUI(events);
 
   // create the graphics device
+  const graphicsInitStart = performance.now();
   const graphicsDevice = await createGraphicsDevice(editorUI.canvas, {
-    deviceTypes: ["webgl2"],
+    deviceTypes: deviceTypesForRenderer(rendererPreference),
     antialias: false,
     depth: false,
     stencil: false,
     xrCompatible: false,
     powerPreference: "high-performance",
-  });
+  } as any);
+  const graphicsInitMs = performance.now() - graphicsInitStart;
+  const actualGraphicsBackend = getActualGraphicsBackend(graphicsDevice);
+
+  events.function("funes.diagnosticsEnabled", () => diagnosticsEnabled);
+  events.function("funes.graphicsState", () => ({
+    requestedBackend: rendererPreference,
+    actualBackend: actualGraphicsBackend,
+    deviceTypes: deviceTypesForRenderer(rendererPreference),
+    webGPUAvailable: isWebGPUAvailable(),
+    graphicsInitMs: rounded(graphicsInitMs),
+    devicePixelRatio: window.devicePixelRatio || 1,
+    canvasWidth: editorUI.canvas.width,
+    canvasHeight: editorUI.canvas.height,
+    userAgent: navigator.userAgent,
+  }));
 
   const overrides = [getURLArgs()];
 

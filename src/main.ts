@@ -1,5 +1,5 @@
 import { WebPCodec } from '@playcanvas/splat-transform';
-import { Color, createGraphicsDevice } from 'playcanvas';
+import { Color, createGraphicsDevice, DEVICETYPE_WEBGL2, DEVICETYPE_WEBGPU } from 'playcanvas';
 
 import { AutoOrbitController } from './auto-orbit';
 import { registerCameraPosesEvents } from './camera-poses';
@@ -81,6 +81,14 @@ const isTruthyParam = (value: string | null) => {
     return value !== null && !['', '0', 'false', 'no', 'off'].includes(value.toLowerCase());
 };
 
+const resolvePreferredDeviceTypes = (url: URL) => {
+    const requestedRenderer = (url.searchParams.get('funesRenderer') ?? 'auto').toLowerCase();
+    if (requestedRenderer === 'webgl2' || requestedRenderer === 'webgl') {
+        return [DEVICETYPE_WEBGL2];
+    }
+    return [DEVICETYPE_WEBGPU, DEVICETYPE_WEBGL2];
+};
+
 const main = async () => {
     // root events object
     const events = new Events();
@@ -89,6 +97,7 @@ const main = async () => {
     const url = new URL(window.location.href);
     const funesEmbeddedMode = isFunesEmbeddedMode(url);
     const funesDiagnosticsEnabled = isTruthyParam(url.searchParams.get('funesDiagnostics'));
+    const preferredDeviceTypes = resolvePreferredDeviceTypes(url);
 
     // shared command queue for all async splat work (GPU readbacks + history mutations).
     // every consumer that needs ordering relative to other commands enqueues here.
@@ -124,8 +133,12 @@ const main = async () => {
 
     // create the graphics device
     const graphicsInitStart = performance.now();
+    const glslangUrl = new URL('static/lib/glslang/glslang.js', document.baseURI).toString();
+    const twgslUrl = new URL('static/lib/twgsl/twgsl.js', document.baseURI).toString();
     const graphicsDevice = await createGraphicsDevice(editorUI.canvas, {
-        deviceTypes: ['webgl2'],
+        deviceTypes: [...preferredDeviceTypes],
+        glslangUrl,
+        twgslUrl,
         antialias: false,
         depth: false,
         stencil: false,
@@ -142,9 +155,9 @@ const main = async () => {
         };
 
         return {
-            requestedBackend: 'webgl2',
+            requestedBackend: preferredDeviceTypes[0],
             actualBackend: device.deviceType ?? (device.isWebGPU ? 'webgpu' : 'webgl2'),
-            deviceTypes: ['webgl2'],
+            deviceTypes: preferredDeviceTypes,
             webGPUAvailable: !!(navigator as Navigator & { gpu?: unknown }).gpu,
             graphicsInitMs: Math.round(graphicsInitMs * 10) / 10,
             devicePixelRatio: window.devicePixelRatio,

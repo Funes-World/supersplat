@@ -297,7 +297,13 @@ const initFileHandler = (scene: Scene, events: Events, dropTarget: HTMLElement) 
             return model;
         } catch (error) {
             const displayName = files[0]?.filename ?? 'unknown';
-            await showLoadError(error.message ?? error, displayName);
+            const message = error instanceof Error ? error.message : `${error}`;
+            events.fire('funes.loadError', {
+                filename: displayName,
+                message
+            });
+            events.fire('funes.loading', false);
+            await showLoadError(message, displayName);
         }
     };
 

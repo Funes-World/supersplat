@@ -5,6 +5,7 @@ const SET_AUTO_ORBIT = 'supersplat:auto-orbit';
 const TOOL_MESSAGE = 'supersplat:tool';
 const TOOL_STATE = 'supersplat:tool-state';
 const LOADING_STATE = 'supersplat:loading';
+const LOAD_ERROR = 'supersplat:error';
 const GRAPHICS_STATE = 'supersplat:graphics-state';
 const PERFORMANCE_SAMPLE = 'supersplat:performance';
 
@@ -56,6 +57,12 @@ interface ToolState {
 interface LoadingStateMessage {
     type: typeof LOADING_STATE;
     loading: boolean;
+}
+
+interface LoadErrorMessage {
+    type: typeof LOAD_ERROR;
+    filename?: string;
+    message: string;
 }
 
 interface GraphicsStateMessage {
@@ -150,6 +157,19 @@ const registerIframeApi = (events: Events) => {
         postTo(target ?? window.parent, payload, origin);
     };
 
+    const postLoadError = (error: any, target?: Window, origin?: string) => {
+        if (!target && window.parent === window) {
+            return;
+        }
+
+        const payload: LoadErrorMessage = {
+            type: LOAD_ERROR,
+            filename: typeof error?.filename === 'string' ? error.filename : undefined,
+            message: typeof error?.message === 'string' ? error.message : `${error ?? 'Unknown load error'}`
+        };
+        postTo(target ?? window.parent, payload, origin);
+    };
+
     const postGraphicsState = (target?: Window, origin?: string) => {
         if (!diagnosticsEnabled() || (!target && window.parent === window)) {
             return;
@@ -184,6 +204,7 @@ const registerIframeApi = (events: Events) => {
     events.on('tool.activated', () => postToolState());
     events.on('tool.deactivated', () => postToolState());
     events.on('funes.loading', (loading: boolean) => postLoadingState(loading));
+    events.on('funes.loadError', (error: any) => postLoadError(error));
 
     let pendingSplatReady = false;
     let readyElapsedMs: number | undefined;

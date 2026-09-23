@@ -1,0 +1,182 @@
+{
+  "upstream": {
+    "repo": "https://github.com/playcanvas/supersplat",
+    "tag": "v3.3.0",
+    "commit": "f345ae5d667f4134e21be7dec01b09b78893203a",
+    "version": "3.3.0"
+  },
+  "integration": {
+    "adapter": "src/funes/adapter-v3.ts",
+    "version": 1,
+    "protocolVersion": 1
+  },
+  "dependencies": {
+    "playcanvas": "2.22.1",
+    "@playcanvas/splat-transform": "3.4.2",
+    "@playcanvas/pcui": "6.1.4"
+  },
+  "seams": [
+    {
+      "file": "src/main.ts",
+      "purpose": "Bootstrap hooks only; install bridge, renderer, transform registration, defaults and query loading",
+      "upstreamSha256": "6f6abd883631f13012d1f0029ddb85db1201bb8ba139511083454710c56ab52d",
+      "integratedSha256": "bad497d54ec00f28f4bec8a7a9e0077a2bb5254f44c95ef859c588b6fafc2e4c"
+    },
+    {
+      "file": "src/events.ts",
+      "purpose": "Event registration and function invocation",
+      "upstreamSha256": "fd5fb02d4f85b0ab9b3ceff9b9aeab92fb0631f2abb09624466e753cd05e5235",
+      "integratedSha256": "fd5fb02d4f85b0ab9b3ceff9b9aeab92fb0631f2abb09624466e753cd05e5235"
+    },
+    {
+      "file": "src/scene.ts",
+      "purpose": "Scene lifecycle and postrender notifications",
+      "upstreamSha256": "c64a3f1b393748de934a72ec229d2eb562ef6834a15be16e0fc0deb8de3f1cd9",
+      "integratedSha256": "c64a3f1b393748de934a72ec229d2eb562ef6834a15be16e0fc0deb8de3f1cd9"
+    },
+    {
+      "file": "src/camera.ts",
+      "purpose": "Auto-orbit azimuth/elevation API",
+      "upstreamSha256": "127de443a2722ba0e64ae5f426086bf965425210fd28e19669c590ced1cc1c7b",
+      "integratedSha256": "127de443a2722ba0e64ae5f426086bf965425210fd28e19669c590ced1cc1c7b"
+    },
+    {
+      "file": "src/scene-config.ts",
+      "purpose": "URL override precedence and camera reset defaults",
+      "upstreamSha256": "11aa79258edbe6389162cd4f7f9e76fb1cf64d5534756dca460aba932fc90bd4",
+      "integratedSha256": "11aa79258edbe6389162cd4f7f9e76fb1cf64d5534756dca460aba932fc90bd4"
+    },
+    {
+      "file": "src/editor.ts",
+      "purpose": "Scene dirty, camera reset and overlay commands",
+      "upstreamSha256": "8669eeb71d34be49a441ff5c43c161296fd958f292ae177453773a6c04d63bb0",
+      "integratedSha256": "8669eeb71d34be49a441ff5c43c161296fd958f292ae177453773a6c04d63bb0"
+    },
+    {
+      "file": "src/entity-transform-handler.ts",
+      "purpose": "Whole-layer transforms",
+      "upstreamSha256": "89e9be37e10595c8066a694ed7a95a258ab0a54933c71650d69141f41a6365b0",
+      "integratedSha256": "89e9be37e10595c8066a694ed7a95a258ab0a54933c71650d69141f41a6365b0"
+    },
+    {
+      "file": "src/splats-transform-handler.ts",
+      "purpose": "Partial splat transforms",
+      "upstreamSha256": "228c47001e251db8ce93c3b647c719d9fbcd81115256b3a76e4cce7a148ae1b8",
+      "integratedSha256": "228c47001e251db8ce93c3b647c719d9fbcd81115256b3a76e4cce7a148ae1b8"
+    },
+    {
+      "file": "src/transform-handler.ts",
+      "purpose": "Pinned registration algorithm mirrored in adapter",
+      "upstreamSha256": "5d274f84b4d8c3a4a5afd6a5896e2cc2326596536aab8ee6c48aca9e8bb1c773",
+      "integratedSha256": "5d274f84b4d8c3a4a5afd6a5896e2cc2326596536aab8ee6c48aca9e8bb1c773"
+    },
+    {
+      "file": "src/pivot.ts",
+      "purpose": "Native pivot registration",
+      "upstreamSha256": "116aa2c87533d8854d8c302876f91ad7ec2422bee31c70446bc516118bd4de36",
+      "integratedSha256": "116aa2c87533d8854d8c302876f91ad7ec2422bee31c70446bc516118bd4de36"
+    },
+    {
+      "file": "src/file-handler.ts",
+      "purpose": "import(files) result and caught failure behavior",
+      "upstreamSha256": "b0e731588b608c702134e9bbfa1c988dfc1babf9415ca1552baee87eaee45741",
+      "integratedSha256": "b0e731588b608c702134e9bbfa1c988dfc1babf9415ca1552baee87eaee45741"
+    },
+    {
+      "file": "src/ui/editor.ts",
+      "purpose": "Embed chrome selectors",
+      "upstreamSha256": "915709e790b1b4a1d4d91dd944e3a957bff3aeb494b3bdfb8396e0e93c887e19",
+      "integratedSha256": "915709e790b1b4a1d4d91dd944e3a957bff3aeb494b3bdfb8396e0e93c887e19"
+    },
+    {
+      "file": "src/preferences.ts",
+      "purpose": "Stored preference application before embed overrides",
+      "upstreamSha256": "3a3ad6e924dd6efc5883b019c03e244098164a47eba9b9f4302d616b7afed11d",
+      "integratedSha256": "3a3ad6e924dd6efc5883b019c03e244098164a47eba9b9f4302d616b7afed11d"
+    },
+    {
+      "file": "src/index.html",
+      "purpose": "Native service-worker removal and scoped cache cleanup",
+      "upstreamSha256": "c5cb5e57d70a569becfe62df0e35c54ef8e427713cd4a363b61ee508224f0d08",
+      "integratedSha256": "c5cb5e57d70a569becfe62df0e35c54ef8e427713cd4a363b61ee508224f0d08"
+    },
+    {
+      "file": "src/controllers.ts",
+      "purpose": "Camera input notification that pauses auto-orbit",
+      "upstreamSha256": "d5d112cf7432c609341c6c89b96ccb3177ee2deb58e41a0e3a7b7c8a36d7d2b7",
+      "integratedSha256": "d5d112cf7432c609341c6c89b96ccb3177ee2deb58e41a0e3a7b7c8a36d7d2b7"
+    },
+    {
+      "file": "src/splat.ts",
+      "purpose": "Selected and total splat counts used to choose the transform handler",
+      "upstreamSha256": "73025d116bf1f178d4a309a9590aff7109782d2fbd0d9b5469c8d090a20ecf9f",
+      "integratedSha256": "73025d116bf1f178d4a309a9590aff7109782d2fbd0d9b5469c8d090a20ecf9f"
+    },
+    {
+      "file": "src/element.ts",
+      "purpose": "Splat element discriminator used for first rendered frame readiness",
+      "upstreamSha256": "cc7048025b153518108ebd9442e97f3898a4f960f26f37f2105488c1e3a50859",
+      "integratedSha256": "cc7048025b153518108ebd9442e97f3898a4f960f26f37f2105488c1e3a50859"
+    },
+    {
+      "file": "src/selection.ts",
+      "purpose": "Selection change event consumed by the transform adapter",
+      "upstreamSha256": "0781dd69dee9c2a514a232716e707c44808b7678c05967949848c26ebaaf4f28",
+      "integratedSha256": "0781dd69dee9c2a514a232716e707c44808b7678c05967949848c26ebaaf4f28"
+    },
+    {
+      "file": "src/tools/tool-manager.ts",
+      "purpose": "Host tool commands, active tool query and activation notifications",
+      "upstreamSha256": "e53069ff8d4572e4bdf25c4b1b6f16078542f2940c6f47a95820895ffd59633a",
+      "integratedSha256": "e53069ff8d4572e4bdf25c4b1b6f16078542f2940c6f47a95820895ffd59633a"
+    },
+    {
+      "file": "src/ui/bottom-toolbar.ts",
+      "purpose": "Embedded bottom toolbar selector definition",
+      "upstreamSha256": "5ab9edc0de427b7abc9b19d7e3a29a4f994661c97971698926ce8541e403b19b",
+      "integratedSha256": "5ab9edc0de427b7abc9b19d7e3a29a4f994661c97971698926ce8541e403b19b"
+    },
+    {
+      "file": "src/ui/right-toolbar.ts",
+      "purpose": "Embedded right toolbar selector definition",
+      "upstreamSha256": "c97467876013477f5ae9f3dfe202613e3dbb07f03e7148c76f871d27e663a9a4",
+      "integratedSha256": "c97467876013477f5ae9f3dfe202613e3dbb07f03e7148c76f871d27e663a9a4"
+    },
+    {
+      "file": "src/ui/menu.ts",
+      "purpose": "Embedded menu selector definition",
+      "upstreamSha256": "92783fb429981c7a1c25ce78754d516b7809563af89dd7b0aa9f5c49c01e7577",
+      "integratedSha256": "92783fb429981c7a1c25ce78754d516b7809563af89dd7b0aa9f5c49c01e7577"
+    },
+    {
+      "file": "src/ui/view-cube.ts",
+      "purpose": "Embedded view cube selector definition",
+      "upstreamSha256": "e12a51e2bfea6e1d6fb04108110a000c9f05c06b3b1f5a5ec1cc54af5e5d3b31",
+      "integratedSha256": "e12a51e2bfea6e1d6fb04108110a000c9f05c06b3b1f5a5ec1cc54af5e5d3b31"
+    },
+    {
+      "file": "src/ui/timeline-panel.ts",
+      "purpose": "Embedded timeline selector definition",
+      "upstreamSha256": "652af852c2981a1edda805a95b97ca1aef0df1c424a3f7f99947f08eacbf8daf",
+      "integratedSha256": "652af852c2981a1edda805a95b97ca1aef0df1c424a3f7f99947f08eacbf8daf"
+    },
+    {
+      "file": "src/ui/data-panel.ts",
+      "purpose": "Embedded data panel selector definition",
+      "upstreamSha256": "a74fe2989912d90ecee7a4054e35d5ea7422274823d83896e3d2923c5bcba5dc",
+      "integratedSha256": "a74fe2989912d90ecee7a4054e35d5ea7422274823d83896e3d2923c5bcba5dc"
+    },
+    {
+      "file": "src/ui/scene-panel.ts",
+      "purpose": "Embedded scene panel selector definition",
+      "upstreamSha256": "31ee622d055be50ff3468c8df6667533fed50635f84cd93c3e989ce98e8b8f79",
+      "integratedSha256": "31ee622d055be50ff3468c8df6667533fed50635f84cd93c3e989ce98e8b8f79"
+    },
+    {
+      "file": "src/ui/status-bar.ts",
+      "purpose": "Embedded status bar selector definition",
+      "upstreamSha256": "29de94a6401eba6809e9195e6b49e02a8edb5c1b72cf25df3cc1b7982bf927b4",
+      "integratedSha256": "29de94a6401eba6809e9195e6b49e02a8edb5c1b72cf25df3cc1b7982bf927b4"
+    }
+  ]
+}

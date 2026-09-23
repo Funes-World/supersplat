@@ -85,3 +85,7 @@ SuperSplat is made possible by our amazing open source community:
 <a href="https://github.com/playcanvas/supersplat/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=playcanvas/supersplat" />
 </a>
+
+## FUNES hosted integration
+
+This fork pins SuperSplat Editor 3.3.0 and isolates the hosted website behavior in `src/funes/`. See the [FUNES integration guide](docs/integrations/funes-embed.md) for its versioned parent protocol, WebGPU requirement, upgrade checks, and tests. `funes-upstream.json` records the exact upstream revision and reviewed adapter seams.

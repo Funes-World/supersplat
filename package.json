@@ -20,10 +20,13 @@
         "develop": "cross-env BUILD_TYPE=debug concurrently --kill-others \"npm run watch\" \"npm run serve\"",
         "develop:auto-launch": "concurrently --kill-others \"xdg-open 'http://localhost:3000/'\" \"npm run watch\" \"npm run serve\"",
         "lint": "eslint src",
-        "lint:locales": "node scripts/check-locales.mjs"
+        "lint:locales": "node scripts/check-locales.mjs",
+        "check:funes": "node scripts/check-funes-upstream.mjs",
+        "prebuild": "npm run check:funes",
+        "test": "npm run check:funes && node --test tests/*.test.cjs tests/*.test.mjs"
     },
     "engines": {
-        "node": ">=20.19.0"
+        "node": ">=22.0.0"
     },
     "devDependencies": {
         "@playcanvas/eslint-config": "2.1.0",

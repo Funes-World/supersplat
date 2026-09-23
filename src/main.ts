@@ -1,5 +1,5 @@
 import { WebPCodec, WorkerQueue } from '@playcanvas/splat-transform';
-import { Color, createGraphicsDevice } from 'playcanvas';
+import { Color } from 'playcanvas';
 
 import { registerCameraPosesEvents } from './camera-poses';
 import { CommandQueue } from './command-queue';
@@ -8,7 +8,8 @@ import { EditHistory } from './edit-history';
 import { registerEditorEvents } from './editor';
 import { Events } from './events';
 import { initFileHandler } from './file-handler';
-import { registerIframeApi } from './iframe-api';
+import { registerFunesTransformHandler } from './funes/adapter-v3';
+import { createFunesIntegration } from './funes/bootstrap';
 import { registerPreferences } from './preferences';
 import { registerPublishEvents } from './publish';
 import { registerRenderEvents } from './render';
@@ -34,7 +35,6 @@ import { SphereBrushSelection } from './tools/sphere-brush-selection';
 import { SphereSelection } from './tools/sphere-selection';
 import { ToolManager } from './tools/tool-manager';
 import { registerTrackManagerEvents } from './track-manager';
-import { registerTransformHandlerEvents } from './transform-handler';
 import { BoundDimensionsOverlay } from './ui/bound-dimensions-overlay';
 import { EditorUI } from './ui/editor';
 import { i18n } from './ui/localization';
@@ -85,6 +85,7 @@ const main = async () => {
 
     // url
     const url = new URL(window.location.href);
+    const funes = createFunesIntegration(events, url);
 
     // shared command queue for all async splat work (GPU readbacks + history mutations).
     // every consumer that needs ordering relative to other commands enqueues here.
@@ -113,9 +114,8 @@ const main = async () => {
     registerTimelineEvents(events);
     registerCameraPosesEvents(events);
     registerTrackManagerEvents(events);
-    registerTransformHandlerEvents(events);
+    registerFunesTransformHandler(events);
     registerPublishEvents(events);
-    registerIframeApi(events);
 
     // initialize shortcuts
     const shortcutManager = new ShortcutManager(events);
@@ -125,19 +125,13 @@ const main = async () => {
     const editorUI = new EditorUI(events);
 
     // create the graphics device
-    const graphicsDevice = await createGraphicsDevice(editorUI.canvas, {
-        deviceTypes: ['webgpu'],
-        antialias: false,
-        depth: false,
-        stencil: false,
-        xrCompatible: false,
-        powerPreference: 'high-performance'
-    });
+    const graphicsDevice = await funes.createGraphicsDevice(editorUI.canvas);
 
     const urlArgs = getURLArgs();
 
     const overrides = [
-        urlArgs
+        urlArgs,
+        funes.sceneDefaults
     ];
 
     // resolve scene config
@@ -279,25 +273,12 @@ const main = async () => {
     // registered after the boot-time initialization events above so they are
     // never captured as user changes.
     registerPreferences(events, sceneConfig, urlArgs);
+    funes.attach(scene, editorUI.canvas);
 
     // load async models
     scene.start();
 
-    // handle load params
-    const loadList = url.searchParams.getAll('load');
-    const filenameList = url.searchParams.getAll('filename');
-    for (const [i, value] of loadList.entries()) {
-        const decoded = decodeURIComponent(value);
-        const filename = i < filenameList.length ?
-            decodeURIComponent(filenameList[i]) :
-            decoded.split('/').pop();
-
-        await events.invoke('import', [{
-            filename,
-            url: decoded
-        }]);
-    }
-
+    await funes.load();
 
     // handle OS-based file association in PWA mode
     if ('launchQueue' in window) {
